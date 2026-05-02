@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cvflow-api
+  namespace: cvflow
+spec:
+  selector:
+    app: cvflow-api
+  ports:
+  - port: 4000
+    targetPort: 4000

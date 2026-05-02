@@ -1,8 +1,7 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import prisma from '../services/prisma'
 const JWT_SECRET = process.env.JWT_SECRET || 'cvflow-secret'
 
 export const register = async (req: Request, res: Response) => {

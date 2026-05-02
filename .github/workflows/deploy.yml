@@ -1,0 +1,24 @@
+name: Build and Deploy CVFlow API
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t master01:32000/cvflow-api:latest .
+          docker push master01:32000/cvflow-api:latest
+
+      - name: Deploy to K8s
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl rollout restart deployment/cvflow-api -n cvflow

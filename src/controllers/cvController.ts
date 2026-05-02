@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import prisma from '../services/prisma'
 export const getCV = async (req: any, res: Response) => {
   try { const cv = await prisma.cV.findUnique({ where: { userId: req.userId } }); res.json(cv) }
   catch (e) { res.status(500).json({ error: 'Erreur serveur' }) }

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvflow-api
+  namespace: cvflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvflow-api
+  template:
+    metadata:
+      labels:
+        app: cvflow-api
+    spec:
+      containers:
+      - name: cvflow-api
+        image: 10.10.0.50:32000/cvflow-api:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: cvflow-secrets
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: cvflow-secrets
+              key: jwt-secret
+        - name: FRONTEND_URL
+          value: "https://cvflow.onemad.uk"
+        - name: OLLAMA_URL
+          value: "http://100.73.229.18:11434"
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cvflow-secrets
+              key: anthropic-api-key
+              optional: true
