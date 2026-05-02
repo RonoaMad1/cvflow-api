@@ -14,7 +14,7 @@ export const register = async (req: Request, res: Response) => {
     const user = await prisma.user.create({ data: { email, password: hashed, username } })
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
     res.status(201).json({ token, user: { id: user.id, email: user.email, username: user.username } })
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }) }
+  } catch (e) { console.error('Register error:', e); res.status(500).json({ error: 'Erreur serveur' }) }
 }
 
 export const login = async (req: Request, res: Response) => {
@@ -26,12 +26,12 @@ export const login = async (req: Request, res: Response) => {
     if (!valid) return res.status(401).json({ error: 'Identifiants invalides' })
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
     res.json({ token, user: { id: user.id, email: user.email, username: user.username } })
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }) }
+  } catch (e) { console.error('Register error:', e); res.status(500).json({ error: 'Erreur serveur' }) }
 }
 
 export const me = async (req: any, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.userId }, select: { id: true, email: true, username: true, createdAt: true } })
     res.json(user)
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }) }
+  } catch (e) { console.error('Register error:', e); res.status(500).json({ error: 'Erreur serveur' }) }
 }
