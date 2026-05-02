@@ -6,9 +6,19 @@ export const getCV = async (req: any, res: Response) => {
 }
 export const updateCV = async (req: any, res: Response) => {
   try {
-    const cv = await prisma.cV.upsert({ where: { userId: req.userId }, update: req.body, create: { ...req.body, userId: req.userId } })
+    const data = req.body
+    const defaults = {
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      title: data.title || '',
+    }
+    const cv = await prisma.cV.upsert({
+      where: { userId: req.userId },
+      update: data,
+      create: { ...defaults, ...data, userId: req.userId }
+    })
     res.json(cv)
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }) }
+  } catch (e) { console.error('updateCV error:', e); res.status(500).json({ error: 'Erreur serveur' }) }
 }
 export const getPublicCV = async (req: Request, res: Response) => {
   try {
