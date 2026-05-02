@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../services/prisma'
 import axios from 'axios'
-const prisma = new PrismaClient()
 export const chat = async (req: Request, res: Response) => {
   try {
     const { username } = req.params
