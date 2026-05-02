@@ -15,5 +15,5 @@ export const chat = async (req: Request, res: Response) => {
       const response = await axios.post('https://api.anthropic.com/v1/messages', { model: 'claude-sonnet-4-6', max_tokens: 1024, system: systemPrompt, messages }, { headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' } })
       res.json({ message: response.data.content[0].text })
     }
-  } catch (e) { res.status(500).json({ error: 'Erreur IA' }) }
+  } catch (e) { console.error('Chat error:', e); res.status(500).json({ error: 'Erreur IA' }) }
 }
