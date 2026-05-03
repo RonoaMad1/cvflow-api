@@ -53,7 +53,7 @@ Reponds UNIQUEMENT en JSON valide avec cette structure exacte:
 
 Le score est de 1 a 5. Grade: A(4.5+) B(3.5+) C(2.5+) D(1.5+) F(<1.5)`
 
-    let analysis: any = {}
+    let analysis: any = { score: 0, grade: 'F', title: title||'', company: company||'', summary: '', pros: [], cons: [], keywords: [], recommendation: '' }
     const aiProvider = cv.aiProvider || 'ollama'
 
     if (aiProvider === 'ollama') {
