@@ -5,6 +5,7 @@ import authRoutes from './routes/auth'
 import cvRoutes from './routes/cv'
 import chatRoutes from './routes/chat'
 import jobRoutes from './routes/jobs'
+import pdfRoutes from './routes/pdf'
 
 dotenv.config()
 
@@ -19,5 +20,6 @@ app.use('/api/auth', authRoutes)
 app.use('/api/cv', cvRoutes)
 app.use('/api/chat', chatRoutes)
 app.use('/api/jobs', jobRoutes)
+app.use('/api/pdf', pdfRoutes)
 
 app.listen(PORT, () => console.log(`🚀 CVFlow API running on port ${PORT}`))
