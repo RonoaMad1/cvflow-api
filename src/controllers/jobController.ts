@@ -122,3 +122,15 @@ export const updateJobStatus = async (req: any, res: Response) => {
     res.status(500).json({ error: 'Erreur' })
   }
 }
+
+export const deleteJob = async (req: any, res: Response) => {
+  try {
+    await prisma.$queryRawUnsafe(
+      'DELETE FROM "Job" WHERE id=$1 AND "userId"=$2',
+      req.params.id, req.userId
+    )
+    res.json({ ok: true })
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur' })
+  }
+}
