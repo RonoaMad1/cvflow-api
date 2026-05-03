@@ -19,13 +19,12 @@ export const chat = async (req: Request, res: Response) => {
       }, { timeout: 300000 })
       res.json({ message: response.data.message.content })
     } else if (cv.aiProvider === 'gemini') {
-      const { GoogleGenerativeAI } = await import('@google/generative-ai')
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
-      const model = genAI.getGenerativeModel({ model: cv.aiModel || 'gemini-2.0-flash', systemInstruction: systemPrompt })
-      const history = messages.slice(0, -1).map((m: any) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
-      const chatSession = model.startChat({ history })
-      const result = await chatSession.sendMessage(messages[messages.length - 1].content)
-      res.json({ message: result.response.text() })
+      const geminiModel = cv.aiModel || 'gemini-2.0-flash'
+      const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/' + geminiModel + ':generateContent?key=' + (process.env.GEMINI_API_KEY || '')
+      const geminiMessages = [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + messages.map((m: any) => m.role + ': ' + m.content).join('\n') }] }]
+      const response = await axios.post(geminiUrl, { contents: geminiMessages }, { timeout: 60000 })
+      const text = response.data.candidates[0].content.parts[0].text
+      res.json({ message: text })
     } else {
       const response = await axios.post('https://api.anthropic.com/v1/messages',
         { model: 'claude-sonnet-4-6', max_tokens: 1024, system: systemPrompt, messages },
