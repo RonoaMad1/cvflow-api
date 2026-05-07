@@ -3,7 +3,7 @@ import axios from 'axios'
 import prisma from '../services/prisma'
 
 const JAILBREAK_PATTERNS = [
-  /ignore (all |previous |above |prior )?instructions/i,
+  /ignore .{0,20}instructions/i,
   /forget (everything|all|your instructions)/i,
   /you are now (a |an )?(?!assistant)/i,
   /act as (a |an )?(?!assistant)/i,

@@ -7,7 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "evals": "node evals/runner.js",
+    "evals:mady": "node evals/runner.js mady http://localhost:4000",
+    "evals:isaac": "node evals/runner.js isaac-loorius http://localhost:4000"
   },
   "repository": {
     "type": "git",
