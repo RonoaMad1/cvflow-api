@@ -1,3 +1,5 @@
+import { scrapeAdzuna } from './adzunaScraper'
+import { scrapeIndeedPuppeteer } from './indeedScraper'
 import axios from 'axios'
 import prisma from '../services/prisma'
 
@@ -141,37 +143,26 @@ async function scrapePoleEmploiDemo(): Promise<number> {
 async function scrapeIndeed(): Promise<number> {
   let total = 0
   try {
-    for (const query of SEARCH_QUERIES.slice(0, 4)) {
-      const rssUrl = `https://fr.indeed.com/rss?q=${encodeURIComponent(query.q)}&l=${encodeURIComponent(LOCATION)}&radius=30`
-      const response = await axios.get(rssUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CVFlow/1.0)' },
-        timeout: 15000
-      })
+    const queries = SEARCH_QUERIES.map(q => q.q)
+    const jobs = await scrapeIndeedPuppeteer(queries, LOCATION)
 
-      const items = response.data.match(/<item>(.*?)<\/item>/gs) || []
-      for (const item of items.slice(0, 10)) {
-        const title = item.match(/<title>(.*?)<\/title>/)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').trim() || ''
-        const link = item.match(/<link>(.*?)<\/link>/)?.[1]?.trim() || ''
-        const company = item.match(/<source[^>]*>(.*?)<\/source>/)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').trim() || 'N/A'
-        const desc = item.match(/<description>(.*?)<\/description>/)?.[1]?.replace(/<[^>]*>/g, '').replace(/<!\[CDATA\[|\]\]>/g, '').trim() || ''
-        const externalId = link.split('jk=')[1]?.split('&')[0] || link.slice(-20)
+    for (const job of jobs) {
+      const category = SEARCH_QUERIES.find(q =>
+        job.title.toLowerCase().includes(q.q.split(' ')[0].toLowerCase())
+      )?.category || 'Autre'
 
-        if (!title || !link) continue
-
-        const { score, grade, summary } = await scoreJob(title, desc, query.category)
-        try {
-          await prisma.$queryRawUnsafe(
-            `INSERT INTO "JobScrape" (source, external_id, url, title, company, location, description, category, score, grade, ai_analysis)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-             ON CONFLICT (source, external_id) DO NOTHING`,
-            'indeed', externalId, link, title, company,
-            LOCATION, desc, query.category, score, grade,
-            JSON.stringify({ summary })
-          )
-          total++
-        } catch (e) {}
-      }
-      await new Promise(r => setTimeout(r, 2000))
+      const { score, grade, summary } = await scoreJob(job.title, job.description, category)
+      try {
+        await prisma.$queryRawUnsafe(
+          `INSERT INTO "JobScrape" (source, external_id, url, title, company, location, description, category, score, grade, ai_analysis)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+           ON CONFLICT (source, external_id) DO NOTHING`,
+          'indeed', job.externalId, job.url, job.title, job.company,
+          job.location, job.description, category, score, grade,
+          JSON.stringify({ summary })
+        )
+        total++
+      } catch (e) {}
     }
   } catch (e: any) {
     console.error('[Indeed] Error:', e.message)
@@ -225,24 +216,55 @@ async function scrapeWTTJ(): Promise<number> {
 // ============================================================
 // MAIN SCRAPER
 // ============================================================
+
+async function scrapeAdzunaJobs(): Promise<number> {
+  let total = 0
+  try {
+    const queries = SEARCH_QUERIES.map(q => q.q)
+    const jobs = await scrapeAdzuna(queries, LOCATION)
+
+    for (const job of jobs) {
+      const category = SEARCH_QUERIES.find(q =>
+        job.title.toLowerCase().includes(q.q.split(' ')[0].toLowerCase())
+      )?.category || job.category || 'Autre'
+
+      const { score, grade, summary } = await scoreJob(job.title, job.description, category)
+      try {
+        await prisma.$queryRawUnsafe(
+          `INSERT INTO "JobScrape" (source, external_id, url, title, company, location, description, salary, contract_type, category, score, grade, ai_analysis)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+           ON CONFLICT (source, external_id) DO NOTHING`,
+          'adzuna', job.externalId, job.url, job.title, job.company,
+          job.location, job.description, job.salary, job.contractType,
+          category, score, grade, JSON.stringify({ summary })
+        )
+        total++
+      } catch (e) {}
+    }
+  } catch (e: any) {
+    console.error('[Adzuna] Error:', e.message)
+  }
+  return total
+}
+
 export async function runScraper(): Promise<void> {
   console.log('[Scraper] Démarrage...')
   const start = Date.now()
 
-  const [pe, indeed, wttj] = await Promise.allSettled([
+  const [pe, adzuna, wttj] = await Promise.allSettled([
     scrapePoleEmploi(),
-    scrapeIndeed(),
+    scrapeAdzunaJobs(),
     scrapeWTTJ(),
   ])
 
   const total =
     (pe.status === 'fulfilled' ? pe.value : 0) +
-    (indeed.status === 'fulfilled' ? indeed.value : 0) +
+    (adzuna.status === 'fulfilled' ? adzuna.value : 0) +
     (wttj.status === 'fulfilled' ? wttj.value : 0)
 
   const duration = Math.round((Date.now() - start) / 1000)
   console.log(`[Scraper] Terminé: ${total} nouvelles offres en ${duration}s`)
   console.log(`  Pôle Emploi: ${pe.status === 'fulfilled' ? pe.value : 'erreur'}`)
-  console.log(`  Indeed: ${indeed.status === 'fulfilled' ? indeed.value : 'erreur'}`)
+  console.log(`  Adzuna: ${adzuna.status === 'fulfilled' ? adzuna.value : 'erreur'}`)
   console.log(`  WTTJ: ${wttj.status === 'fulfilled' ? wttj.value : 'erreur'}`)
 }
