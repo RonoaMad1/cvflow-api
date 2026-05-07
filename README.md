@@ -1,6 +1,28 @@
 # CVFlow API 🚀
 
-Backend Node.js + Express pour la plateforme CVFlow.
+Backend Node.js + Express pour la plateforme CVFlow — avec RAG agéntic, défense anti-injection, LLMOps et evals automatisés.
+
+## Nouveautés Phase 1-3
+
+### RAG Agéntic
+- Indexation automatique du CV en chunks (expériences, compétences, formation, etc.)
+- Embeddings via Ollama (nomic-embed-text)
+- Recherche par similarité cosinus pour contextualiser les réponses
+
+### Défense Anti-Injection
+- 12 patterns de jailbreak détectés et bloqués
+- Logging de toutes les tentatives en base de données
+- Réponse neutre en cas de détection
+
+### Dashboard LLMOps (/api/admin)
+- GET /api/admin/stats — KPIs, activité 30j, providers, RAG stats
+- GET /api/admin/conversations — Liste filtrée avec détails
+- GET /api/admin/security — Patterns détectés, historique jailbreaks
+
+### Evals Automatisés
+- 15 tests en 5 catégories : Factual, Persona, Sécurité, Qualité, Langue
+- 100% de réussite sur tous les profils testés
+- Usage: node evals/runner.js <username> <api_url>
 
 ## Endpoints
 
@@ -16,6 +38,7 @@ Backend Node.js + Express pour la plateforme CVFlow.
 
 ### Chat
 - POST /api/chat/:username
+- POST /api/chat/:username/reindex
 
 ### Jobs
 - POST /api/jobs/analyze
@@ -30,11 +53,23 @@ Backend Node.js + Express pour la plateforme CVFlow.
 - POST /api/interview/questions
 - POST /api/interview/evaluate
 
+### Admin (LLMOps)
+- GET /api/admin/stats
+- GET /api/admin/conversations
+- GET /api/admin/conversations/:id
+- GET /api/admin/security
+
 ## Stack
 - Node.js + Express + TypeScript
 - Prisma v7 + PostgreSQL
 - JWT Authentication
 - Ollama / Gemini / Claude API
+- RAG avec embeddings nomic-embed-text
+
+## Base de données
+- User, CV, Job (tables Prisma)
+- ChatLog (logs conversations + jailbreaks)
+- CVChunk (index RAG du CV)
 
 ## Variables d'environnement
 ```env
@@ -49,6 +84,12 @@ ANTHROPIC_API_KEY=votre-cle-anthropic
 ```bash
 npm install
 npm run dev
+```
+
+## Evals
+```bash
+node evals/runner.js mady http://localhost:4000
+node evals/runner.js isaac-loorius http://localhost:4000
 ```
 
 *CVFlow API — Votre carrière, propulsée par l'IA* 🚀
