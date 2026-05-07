@@ -7,6 +7,7 @@ import chatRoutes from './routes/chat'
 import jobRoutes from './routes/jobs'
 import pdfRoutes from './routes/pdf'
 import interviewRoutes from './routes/interview'
+import adminRoutes from './routes/admin'
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ app.get('/health', (_, res) => res.json({ status: 'ok' }))
 app.use('/api/auth', authRoutes)
 app.use('/api/cv', cvRoutes)
 app.use('/api/chat', chatRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/pdf', pdfRoutes)
 app.use('/api/interview', interviewRoutes)
